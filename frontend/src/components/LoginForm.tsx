@@ -9,17 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const response = await fetch(`${apiUrl}/auth/login`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    username: "john@example.com",
-    password: "password123",
-  }),
-});
-
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
