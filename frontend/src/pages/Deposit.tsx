@@ -8,6 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Phone, Mail, DollarSign, Building2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+const apiUrl = import.meta.env.VITE_API_URL;
+
+const PENDING_DURATION = 3000;
+const SUBMIT_DELAY = 2000;
+
 
 const Deposit = () => {
   const navigate = useNavigate();
@@ -16,7 +21,7 @@ const Deposit = () => {
   const [selectedBank, setSelectedBank] = useState("");
   const [amount, setAmount] = useState("");
   const [showPendingDialog, setShowPendingDialog] = useState(false);
-  
+
   // Contact form fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -46,14 +51,23 @@ const Deposit = () => {
       return;
     }
 
+    // Save deposit info to localStorage
+    const depositInfo = {
+      bank: selectedBank,
+      amount: amount,
+      timestamp: new Date().toISOString(),
+    };
+    localStorage.setItem("depositInfo", JSON.stringify(depositInfo));
+
     setShowPendingDialog(true);
-    
-    // Show pending for 3 seconds then move to contact form
+
+    // Keep the submit delay before moving on
     setTimeout(() => {
       setShowPendingDialog(false);
       setStep(3);
-    }, 3000);
+    }, PENDING_DURATION);
   };
+
 
   const handleContactSubmit = async () => {
     if (!firstName || !lastName || !email || !phone) {
@@ -77,16 +91,48 @@ const Deposit = () => {
     }
 
     setIsLoading(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
-      setIsLoading(false);
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`${apiUrl}/deposits`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          bank: selectedBank,
+          amount: parseFloat(amount),
+          firstName,
+          lastName,
+          email,
+          phone,
+          message,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save deposit information.");
+      }
+
+      const result = await response.json();
+
       toast({
         title: "Contact Request Submitted",
         description: "Thank you! Our security team will contact you within 24 hours to complete your deposit.",
       });
+
       navigate("/dashboard");
-    }, 2000);
+    } catch (error) {
+      toast({
+        title: "Submission Error",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const selectedBankName = banks.find(b => b.id === selectedBank)?.name;
@@ -134,6 +180,7 @@ const Deposit = () => {
                     <Input
                       id="amount"
                       type="number"
+                      min="0"
                       placeholder="0.00"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
@@ -156,11 +203,10 @@ const Deposit = () => {
                     {banks.map((bank) => (
                       <div
                         key={bank.id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                          selectedBank === bank.id
+                        className={`p-3 border rounded-lg cursor-pointer transition-all ${selectedBank === bank.id
                             ? "border-blue-500 bg-blue-50"
                             : "border-gray-200 hover:border-gray-300"
-                        }`}
+                          }`}
                         onClick={() => setSelectedBank(bank.id)}
                       >
                         <div className="flex items-center justify-between">

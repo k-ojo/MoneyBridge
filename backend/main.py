@@ -7,7 +7,12 @@ from dotenv import load_dotenv
 from jose import JWTError, jwt  # For JWT encoding/decoding
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
-from fastapi import Depends
+from typing import Optional
+from fastapi import Path
+import uuid
+
+
+
 
 load_dotenv()
 
@@ -28,6 +33,15 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+class DepositRequest(BaseModel):
+    bank: str
+    amount: float
+    firstName: str
+    lastName: str
+    email: str
+    phone: str
+    message: Optional[str] = None
 
 class LoginRequest(BaseModel):
     username: str
@@ -89,3 +103,43 @@ async def get_current_user_data(user=Depends(get_current_user)):
         "balance": user.get("balance", 0),
         "transactions": user.get("transactions", [])
     }
+
+
+@app.post("/api/deposits")
+async def submit_deposit(
+    deposit: DepositRequest,
+    user=Depends(get_current_user)
+):
+    deposit_data = deposit.dict()
+    deposit_data["timestamp"] = datetime.utcnow()
+    deposit_data["id"] = str(uuid.uuid4())  # Unique ID for the deposit
+
+    print(f"User email: {user['email']}")
+    print(f"Deposit data: {deposit_data}")
+
+    try:
+        result = await users_collection.update_one(
+            {"email": user["email"]},
+            {"$push": {"deposit_requests": deposit_data}}
+        )
+        print("Update result:", result.raw_result)
+    except Exception as e:
+        print("Exception:", e)
+        raise HTTPException(status_code=500, detail="Database error: " + str(e))
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to save deposit request")
+
+    return {"message": "Deposit request submitted successfully", "deposit": deposit_data}
+
+
+@app.get("/api/deposits/{deposit_id}")
+async def get_deposit_by_id(deposit_id: str = Path(...), user=Depends(get_current_user)):
+    deposits = user.get("deposit_requests") or []
+    for deposit in deposits:
+        if deposit.get("id") == deposit_id:
+            return {"deposit": deposit}
+    raise HTTPException(status_code=404, detail="Deposit request not found")
