@@ -18,7 +18,7 @@ const Transfer = () => {
   const [description, setDescription] = useState("");
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const balance = user.balance;
+  const userBalance = user.balance;
 
   const banks = [
     { id: "chase", name: "JPMorgan Chase", region: "US" },
@@ -42,16 +42,33 @@ const Transfer = () => {
     }
 
     // Navigate to tax verification page
+    const transferAmount = parseFloat(amount);
+
+    // Check if transfer amount exceeds balance
+    if (transferAmount > userBalance) {
+      toast({
+        title: "Insufficient Funds",
+        description: `Transfer amount ($${transferAmount.toLocaleString()}) exceeds your available balance ($${userBalance.toLocaleString()}).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Navigate to tax verification page
     navigate("/tax-verification", {
       state: {
         recipientName,
         accountNumber,
         selectedBank: banks.find(b => b.id === selectedBank)?.name,
-        amount: parseFloat(amount),
+        amount: transferAmount,
         description,
       }
     });
   };
+
+  const transferAmount = parseFloat(amount || "0");
+  const isAmountExceedingBalance = transferAmount > userBalance;
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -117,8 +134,16 @@ const Transfer = () => {
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="text-lg"
+                  className={`text-lg ${isAmountExceedingBalance ? "border-red-500 focus:border-red-500" : ""}`}
                 />
+                {isAmountExceedingBalance && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Amount exceeds available balance (${userBalance.toLocaleString()})
+                  </p>
+                )}
+                <p className="text-gray-500 text-sm mt-1">
+                  Available balance: ${userBalance.toLocaleString()}
+                </p>
               </div>
 
               <div>
@@ -146,11 +171,10 @@ const Transfer = () => {
                 {banks.map((bank) => (
                   <div
                     key={bank.id}
-                    className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                      selectedBank === bank.id
+                    className={`p-3 border rounded-lg cursor-pointer transition-all ${selectedBank === bank.id
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-200 hover:border-gray-300"
-                    }`}
+                      }`}
                     onClick={() => setSelectedBank(bank.id)}
                   >
                     <div className="flex items-center justify-between">
@@ -192,7 +216,7 @@ const Transfer = () => {
 
               <Button
                 onClick={handleTransfer}
-                disabled={!recipientName || !accountNumber || !selectedBank || !amount}
+                disabled={!recipientName || !accountNumber || !selectedBank || !amount || isAmountExceedingBalance}
                 className="w-full mt-6 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 Continue Transfer
