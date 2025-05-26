@@ -42,7 +42,7 @@ const Contact = () => {
     };
 
     const handleEmailSupport = () => {
-        window.location.href = "mailto:support@moneybridge.com";
+        window.location.href = "mailto:support@btfbank.uk";
     };
 
     const handlePhoneSupport = () => {
@@ -177,7 +177,7 @@ const Contact = () => {
                                     onClick={handleEmailSupport}
                                     className="w-full bg-indigo-600 hover:bg-indigo-700"
                                 >
-                                    support@moneybridge.com
+                                    support@btfbank.uk
                                 </Button>
                             </CardContent>
                         </Card>
