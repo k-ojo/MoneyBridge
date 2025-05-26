@@ -6,7 +6,7 @@ sample_users = [
         "name": "John Doe",
         "email": "john@example.com",
         "password": "password123",
-        "balance": 920000.00,
+        "balance": 9200.00,
         "transactions": [
             {
                 "id": 1,
