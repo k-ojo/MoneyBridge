@@ -7,6 +7,7 @@ import TransferForm from "@/components/TransferForm";
 import BankSelection from "@/components/BankSelection";
 import ContactForm from "@/components/ContactForm";
 import PendingDialog from "@/components/PendingDialog";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const Transfer = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const Transfer = () => {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [showPendingDialog, setShowPendingDialog] = useState(false);
-  
+
   // User's current balance - in a real app, this would come from a state management solution or API
   const userBalance = 920000.00;
 
@@ -33,7 +34,7 @@ const Transfer = () => {
     { id: "santander", name: "Santander", region: "EU" },
   ];
 
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
     if (!recipientName || !accountNumber || !selectedBank || !amount) {
       toast({
         title: "Missing Information",
@@ -44,8 +45,7 @@ const Transfer = () => {
     }
 
     const transferAmount = parseFloat(amount);
-    
-    // Check if transfer amount exceeds balance
+
     if (transferAmount > userBalance) {
       toast({
         title: "Insufficient Funds",
@@ -56,13 +56,51 @@ const Transfer = () => {
     }
 
     setShowPendingDialog(true);
-    
-    // Show pending for 3 seconds then move to contact form
-    setTimeout(() => {
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(`${apiUrl}/transfers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          recipient_name: recipientName,
+          account_number: accountNumber,
+          bank: selectedBank,
+          amount: transferAmount,
+          message: description,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Transfer failed");
+      }
+
+      toast({
+        title: "Transfer Submitted",
+        description: "Your transfer has been submitted pending approval.",
+      });
+
+      setTimeout(() => {
+        setShowPendingDialog(false);
+        setStep(2)
+      }, 2000);
+    } catch (error) {
+      console.error("Transfer error:", error);
       setShowPendingDialog(false);
-      setStep(3);
-    }, 3000);
+      toast({
+        title: "Transfer Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
+
 
   const transferAmount = parseFloat(amount || "0");
   const isAmountExceedingBalance = transferAmount > userBalance;
@@ -122,8 +160,26 @@ const Transfer = () => {
             </div>
           </>
         )}
+        {step === 2 && (
+          <div className="text-center py-16">
+            <h2 className="text-2xl font-semibold mb-4">Transfer Submitted</h2>
+            <p className="mb-6">Your transfer is pending approval. Thank you for your patience.</p>
+            <Button onClick={() => setStep(3)}>Continue</Button> {/* go to security verification */}
+          </div>
+        )}
 
         {step === 3 && (
+          <div className="text-center py-16">
+            <h2 className="text-2xl font-semibold mb-4">Security Verification</h2>
+            <p className="mb-6">Please verify your identity to complete the transfer.</p>
+            <Button onClick={() => setStep(4)}>Submit for Verification</Button>
+            <div className="mt-4">
+              <Button variant="ghost" onClick={() => navigate("/dashboard")}>Return to Dashboard</Button>
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
           <ContactForm
             recipientName={recipientName}
             selectedBankName={selectedBankName}
@@ -131,11 +187,13 @@ const Transfer = () => {
             accountNumber={accountNumber}
           />
         )}
+
+
       </div>
 
-      <PendingDialog 
-        isOpen={showPendingDialog} 
-        onOpenChange={setShowPendingDialog} 
+      <PendingDialog
+        isOpen={showPendingDialog}
+        onOpenChange={setShowPendingDialog}
       />
     </div>
   );

@@ -10,3 +10,4 @@ MONGO_URL = os.environ["MONGO_URL"]
 client = AsyncIOMotorClient(MONGO_URL)
 db = client["moneybridge"]
 users_collection: Collection = db["mbusers"]
+contact_requests_collection = db["contact_requests"]

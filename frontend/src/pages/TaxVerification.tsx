@@ -1,4 +1,3 @@
-
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,9 +72,25 @@ const TaxVerification = () => {
               <div className="border-t pt-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Contact Our Tax Clearance Team</h3>
                 <p className="text-gray-700 mb-6">
-                  To proceed with your transfer, please contact our specialized tax clearance team. 
-                  This process is mandatory for your security and in accordance with financial regulations.
-                </p>
+                  To proceed with your transfer, please provide the required details in the form below. Our tax clearance team will review your information and contact you within 24 hours. For any questions or assistance, feel free to reach out to our support team.                </p>
+
+                {/* Moved submit buttons here */}
+                <div className="flex space-x-4 mb-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate("/dashboard")}
+                    className="flex-1"
+                  >
+                    Return to Dashboard
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => navigate("/transfer")}
+                    className="flex-1"
+                  >
+                    Submit for Security Verification
+                  </Button>
+                </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <Card className="border-blue-200">
@@ -100,12 +115,13 @@ const TaxVerification = () => {
                       <h4 className="font-semibold text-gray-900 mb-2">Phone Support</h4>
                       <p className="text-gray-600 text-sm mb-4">
                         Speak directly with our team
+                        Currently unavailable
                       </p>
                       <Button 
                         onClick={handlePhoneSupport}
                         className="w-full bg-green-600 hover:bg-green-700"
                       >
-                        +1-800-555-1234
+                        +44-XXX-XXX-XXXX
                       </Button>
                     </CardContent>
                   </Card>
@@ -120,23 +136,6 @@ const TaxVerification = () => {
                   <li>• All customer data is encrypted and handled according to privacy regulations</li>
                   <li>• Processing typically takes 1-2 business days after verification</li>
                 </ul>
-              </div>
-
-              <div className="flex space-x-4 pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate("/dashboard")}
-                  className="flex-1"
-                >
-                  Return to Dashboard
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={() => navigate("/transfer")}
-                  className="flex-1"
-                >
-                  Cancel Transfer
-                </Button>
               </div>
             </div>
           </CardContent>

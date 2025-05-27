@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI, HTTPException, Depends, status
 from pydantic import BaseModel
-from db import users_collection  # Your MongoDB collection
+from db import users_collection , contact_requests_collection# Your MongoDB collection
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from jose import JWTError, jwt  # For JWT encoding/decoding
@@ -10,8 +10,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import Path
 import uuid
-
-
+from bson import ObjectId
 
 
 load_dotenv()
@@ -34,6 +33,19 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
+
+class ContactInfo(BaseModel):
+    firstName: str
+    lastName: str
+    email: str
+    phone: str
+    message: Optional[str] = None
+
+class ContactFormRequest(BaseModel):
+    contactInfo: ContactInfo
+    transferDetails: Optional[dict] = None
+
+
 class DepositRequest(BaseModel):
     bank: str
     amount: float
@@ -42,6 +54,12 @@ class DepositRequest(BaseModel):
     email: str
     phone: str
     message: Optional[str] = None
+
+class TransferRequest(BaseModel):
+    recipient_name: str
+    account_number: str
+    amount: float
+    message: Optional[str] = None  # Optional description
 
 class LoginRequest(BaseModel):
     username: str
@@ -143,3 +161,84 @@ async def get_deposit_by_id(deposit_id: str = Path(...), user=Depends(get_curren
         if deposit.get("id") == deposit_id:
             return {"deposit": deposit}
     raise HTTPException(status_code=404, detail="Deposit request not found")
+
+
+@app.post("/api/transfers")
+async def submit_transfer(
+    transfer: TransferRequest,
+    user=Depends(get_current_user)
+):
+    transfer_data = transfer.dict()
+    transfer_data["timestamp"] = datetime.utcnow()
+    transfer_data["id"] = str(uuid.uuid4())
+    transfer_data["sender_email"] = user["email"]
+
+    try:
+        result = await users_collection.update_one(
+            {"email": user["email"]},
+            {"$push": {"transfer_requests": transfer_data}}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Database error: " + str(e))
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to save transfer request")
+
+    return {"message": "Transfer submitted", "transfer": transfer_data}
+
+
+def convert_objectid_to_str(obj):
+    if isinstance(obj, dict):
+        return {k: convert_objectid_to_str(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_objectid_to_str(i) for i in obj]
+    elif isinstance(obj, ObjectId):
+        return str(obj)
+    else:
+        return obj
+
+@app.post("/api/contact")
+async def submit_contact_form(contact: ContactFormRequest, user=Depends(get_current_user)):
+    contact_data = {
+        **contact.contactInfo.dict(),  # flatten contactInfo
+        "transferDetails": contact.transferDetails,
+        "timestamp": datetime.utcnow(),
+        "user_id": str(user["_id"]),  # already str
+        "user_email": user["email"],
+        "id": str(uuid.uuid4()),
+    }
+
+    try:
+        await contact_requests_collection.insert_one(contact_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Database error: " + str(e))
+
+    # Convert all ObjectIds inside contact_data to strings before returning
+    safe_contact_data = convert_objectid_to_str(contact_data)
+
+    return {"message": "Contact form submitted successfully", "contact": safe_contact_data}
+
+def serialize_contact_request(request: dict) -> dict:
+    # Convert MongoDB's ObjectId to string and sanitize output
+    request["_id"] = str(request.get("_id"))
+    if "user_id" in request:
+        request["user_id"] = str(request["user_id"])
+    return request
+
+@app.get("/api/contact")
+async def get_contact_requests(
+    skip: int = 0,
+    limit: int = 20,
+    user=Depends(get_current_user)
+):
+    if not user.get("is_admin", False):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    requests_cursor = contact_requests_collection.find().skip(skip).limit(limit)
+    requests_raw = await requests_cursor.to_list(length=limit)
+    requests = [serialize_contact_request(req) for req in requests_raw]
+
+    return {"requests": requests}
