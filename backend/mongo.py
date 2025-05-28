@@ -3,35 +3,70 @@ from db import users_collection
 
 sample_users = [
     {
-        "name": "John Doe",
-        "email": "john@example.com",
-        "password": "password123",
+        "name": "Juliet",
+        "email": "julie68696@mb.com",
+        "password": "Ecobrunson47$",
         "balance": 9200.00,
         "transactions": [
             {
                 "id": 1,
                 "type": "deposit",
-                "amount": 5000.00,
-                "date": "2024-01-20",
-                "description": "Bank Transfer from Chase",
+                "amount": 170000.00,
+                "date": "2025-01-16",
+                "description": "To Juliet",
                 "status": "completed"
             },
             {
                 "id": 2,
-                "type": "transfer",
-                "amount": -2500.00,
-                "date": "2024-01-19",
-                "description": "To Sarah Johnson - Germany",
+                "type": "deposit",
+                "amount": 400000.00,
+                "date": "2025-05-15",
+                "description": "To Juliet",
+                "status": "completed"
+            },
+            {
+                "id": 3,
+                "type": "deposit",
+                "amount": 400000.00,
+                "date": "2025-05-10",
+                "description": "To Juliet",
                 "status": "completed"
             }
         ]
     },
+
+    
     {
-        "name": "Alice Smith",
-        "email": "alice@example.com",
-        "password": "alicepass",
-        "balance": 0.00,
-        "transactions": []
+        "name": "Florence",
+        "email": "florence@mb.com",
+        "password": "Ecobrunson47$",
+        "balance": 9200.00,
+        "transactions": [
+            {
+                "id": 1,
+                "type": "deposit",
+                "amount": 170000.00,
+                "date": "2025-01-16",
+                "description": "To Florence",
+                "status": "completed"
+            },
+            {
+                "id": 2,
+                "type": "deposit",
+                "amount": 400000.00,
+                "date": "2025-05-15",
+                "description": "To Florence",
+                "status": "completed"
+            },
+            {
+                "id": 3,
+                "type": "deposit",
+                "amount": 400000.00,
+                "date": "2025-05-10",
+                "description": "To Florence",
+                "status": "completed"
+            }
+        ]
     }
 ]
 
