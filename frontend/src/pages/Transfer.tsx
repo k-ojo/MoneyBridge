@@ -160,13 +160,55 @@ const Transfer = () => {
             </div>
           </>
         )}
+
         {step === 2 && (
-          <div className="text-center py-16">
-            <h2 className="text-2xl font-semibold mb-4">Transfer Submitted</h2>
-            <p className="mb-6">Your transfer is pending approval. Thank you for your patience.</p>
-            <Button onClick={() => setStep(3)}>Continue</Button> {/* go to security verification */}
+          <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
+                Pending — Awaiting Tax Compliance
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-bold text-center mb-6">Transfer Receipt</h2>
+
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+              <div className="font-semibold">Sender</div>
+              <div className="font-bold">Juliet Amoah</div> {/* Replace with actual sender name */}
+
+              <div className="font-semibold">Recipient</div>
+              <div className="font-bold">{recipientName}</div>
+
+              <div className="font-semibold">Account number</div>
+              <div className="font-bold">{accountNumber}</div>
+
+              <div className="font-semibold">Bank</div>
+              <div className="font-bold">{selectedBankName}</div>
+
+              <div className="font-semibold">Amount Sent</div>
+              <div className="font-bold">$ {parseFloat(amount).toFixed(2)} USD</div>
+
+              <div className="font-semibold">Transfer Fee</div>
+              <div className="font-bold">$ 0.00 USD</div>
+
+              <div className="font-semibold">Total Deducted</div>
+              <div className="font-bold">$ {parseFloat(amount).toFixed(2)} USD</div>
+
+              <div className="font-semibold">Message</div>
+              <div className="font-bold">{description || "—"}</div>
+
+              <div className="font-semibold">Date</div>
+              <div className="font-bold">{new Date().toLocaleString()}</div>
+
+              <div className="font-semibold">Status</div>
+              <div className="font-bold text-yellow-600">Pending - Tax Compliance Review</div>
+            </div>
+
+            <div className="mt-6 text-center">
+              <Button onClick={() => setStep(3)}>Continue</Button>
+            </div>
           </div>
         )}
+
 
         {step === 3 && (
           <div className="text-center py-16">
