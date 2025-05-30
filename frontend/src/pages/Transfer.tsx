@@ -25,6 +25,7 @@ const Transfer = () => {
 
   const banks = [
     { id: "chase", name: "JPMorgan Chase", region: "US" },
+    { id: "CIBC", name: "Canadian Imperial Bank of Commerce", region: "Canada"},
     { id: "boa", name: "Bank of America", region: "US" },
     { id: "wells", name: "Wells Fargo", region: "US" },
     { id: "barclays", name: "Barclays", region: "EU" },
