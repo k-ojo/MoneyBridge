@@ -173,7 +173,7 @@ const Transfer = () => {
 
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
               <div className="font-semibold">Sender</div>
-              <div className="font-bold">Juliet Amoah</div> {/* Replace with actual sender name */}
+              <div className="font-bold">Florence Yeboah</div> {/* Replace with actual sender name */}
 
               <div className="font-semibold">Recipient</div>
               <div className="font-bold">{recipientName}</div>
