@@ -21,7 +21,7 @@ const Transfer = () => {
   const [showPendingDialog, setShowPendingDialog] = useState(false);
 
   // User's current balance - in a real app, this would come from a state management solution or API
-  const userBalance = 920000.00;
+  const userBalance = 0.00;
 
   const banks = [
     { id: "chase", name: "JPMorgan Chase", region: "US" },
