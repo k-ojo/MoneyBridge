@@ -116,11 +116,14 @@ async def login(request: LoginRequest):
 @app.get("/api/me")
 async def get_current_user_data(user=Depends(get_current_user)):
     return {
-        "name": user["name"],
+        "name": user.get("name", ""),
+        "last_name": user.get("last_name", ""),
         "email": user["email"],
         "balance": user.get("balance", 0),
+        "address": user.get("address", ""),
         "transactions": user.get("transactions", [])
     }
+
 
 
 @app.post("/api/deposits")
